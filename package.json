@@ -1,0 +1,30 @@
+{
+  "name": "zepto-refresh",
+  "version": "1.2.3",
+  "description": "In the end to achieve the drop-down and pulled up to the top of the unit and then pull it appears refresh effect",
+  "main": "zepto.refresh.js",
+  "scripts": {
+    "test": "gulp compress",
+    "server": "gulp server",
+    "start": "npm run server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nevergiveup-j/zepto-refresh.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nevergiveup-j/zepto-refresh/issues"
+  },
+  "homepage": "https://github.com/nevergiveup-j/zepto-refresh",
+  "devDependencies": {
+    "gulp": "^3.9.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-uglify": "^1.2.0"
+  },
+  "dependencies": {
+    "gulp-connect": "^5.0.0",
+    "gulp-watch": "^4.3.11"
+  }
+}

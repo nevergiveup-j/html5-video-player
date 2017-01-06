@@ -1,0 +1,112 @@
+
+body {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #444;
+  background-color: #fff
+}
+
+.vplay-wrap {
+  position: relative;
+}
+
+.vplay-wrap .vplay-control-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  font-size: 12px;
+  color: #fff;
+  visibility: hidden;
+  opacity: 0;
+  -webkit-transition: visibility .1s, opacity .1s;
+  -moz-transition: visibility .1s, opacity .1s;
+  transition: visibility .1s, opacity .1s;
+}
+
+.vplay-wrap .vplay-control-bar .vplay-progress-control {
+  position: relative;
+  height: 6px;
+}
+.vplay-wrap .vplay-control-bar .vplay-progress-holder {
+  height: 100%;
+}
+
+.vplay-wrap .vplay-control-bar .vplay-load-progress {
+  height: 6px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, .7);
+}
+
+.vplay-wrap .vplay-control-bar .vplay-play-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  height: 100%;
+  background: #ff4252;
+}
+
+.vplay-wrap .vplay-control-bar .vplay-play-progress:after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 12px;
+  height: 12px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #ff4252;
+  -webkit-border-radius: 50%;
+  -moz-border-radius: 50%;
+  border-radius: 50%;
+}
+
+.vplay-wrap .vplay-control-bar .vplay-control-fn {
+  height: 30px;
+  padding: 0 5px;
+  line-height: 30px;
+  background: rgba(0, 0, 0, .5);
+}
+.vplay-wrap .vplay-control-bar .vplay-button {
+  float: left;
+  display: inline-block;
+  width: 30px;
+  height: 100%;
+}
+.vplay-wrap .vplay-control-bar .vplay-play-control {
+  margin-right: 5px;
+}
+.vplay-wrap .vplay-control-bar .vplay-current-time {
+  float: left;
+}
+.vplay-wrap .vplay-control-bar .vplay-remaining-time {
+  float: left;
+  color: #999;
+}
+.vplay-wrap .vplay-control-bar .vplay-fullscreen-control {
+  float: right;
+}
+.vplay-wrap .vplay-control-bar .vplay-button span {
+  width: 20px;
+  height: 20px;
+  overflow: hidden;
+}
+
+.vplay-wrap .vplay-control-bar .vplay-button-play {
+  background: url(./images/icon_play.png) no-repeat center;
+}
+
+.vplay-wrap .vplay-control-bar .vplay-button-paused {
+  background: url(./images/icon_paused.png) no-repeat center;
+}
+
+.vplay-wrap .vplay-control-bar .vplay-fullscreen-control {
+  background: url(./images/icon_fullscreen.png) no-repeat center;
+}
+
+.vplay-has-started .vplay-control-bar {
+  visibility: visible;
+  opacity: 1;
+}

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta id="viewport" name="viewport" content="initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="format-detection" content="telephone=no">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name=”apple-mobile-web-app-status-bar-style” content=black” />
+<title>HTML5 Video Player</title>
+<link rel="stylesheet" href="./src/video-player.css">
+</head>
+<body>
+	<div class="wrap" style="width: 800px;margin: 0 auto">
+		<video width=725 height=602 id="J_vPlayer" style="width: 100%" class="v-player">
+			<source src="./movie.ogg" type="video/mp4">
+		</video>
+	</div>
+</body>
+</html>
+<script src="./src/jquery-1.12.0.min.js"></script>
+<script src="./src/video-player.js"></script>
+<script>
+var Video = new vPlayer('#J_vPlayer');
+
+Video.play()
+</script>
