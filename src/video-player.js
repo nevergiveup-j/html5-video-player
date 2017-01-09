@@ -44,10 +44,15 @@
   vPlayer.prototype.init = function() {
     var self = this;
 
-    this.control_time = null;
+    this.controlTimer = null;
+    // 总时间长
+    this.durationTime = 0;
 
     this.render();
+    this.showControlBar();
     this.bind();
+    this.readyBind();
+    this._events();
   }
 
   /**
@@ -60,15 +65,16 @@
         '<div class="vplay-progress-control">',
           '<div class="vplay-progress-holder">',
             '<div class="vplay-load-progress"></div>',
-            '<div class="vplay-play-progress" style="width: 40%;"></div>',
+            '<div class="vplay-play-progress"></div>',
+            '<div class="vplay-mouse-display"><span>3:06</span></div>',
           '</div>',
         '</div>',
         '<div class="vplay-control-fn">',
           '<div class="vplay-button vplay-play-control vplay-button-paused">',
             '<span></span>',
           '</div>',
-          '<div class="vplay-current-time">02:11</div>',
-          '<div class="vplay-remaining-time">/10:11</div>',
+          '<div class="vplay-current-time">00:00</div>',
+          '<div class="vplay-remaining-time">/<span class="vplay-duration-time">00:00</span></div>',
           '<div class="vplay-volume-menu-button">',
             '<span></span>',
           '</div>',
@@ -90,6 +96,8 @@
 
     this.$wrap.append(controlTpl);
 
+    this.$progress = $('.vplay-progress-control');
+    this.$playProgress = $('.vplay-play-progress');
   }
 
   /**
@@ -105,14 +113,38 @@
       function() {
         self.hideControlBar();
       }
-    )
+    );
+  }
+
+  /**
+   * 视频准备事件
+   */
+  vPlayer.prototype.readyBind = function() {
+    var self = this;
+
+    console.log('ready');
+
+    // Play按钮
+    $('.vplay-play-control').on('click', function() {
+      self.togglePlay();
+    });
+
+    this.$progress.on('click', function(e) {
+      var width = $(this).width(),
+        per = e.offsetX / width * 10,
+        perTime = self.durationTime * 0.1,
+        currentTime = perTime * per;
+
+      self.setCurrentTime(currentTime);
+      self.uploadProgress(currentTime);  
+    });
   }
 
   /**
    * 显示控制框
    */
   vPlayer.prototype.showControlBar = function() {
-    clearTimeout(this.control_time);
+    clearTimeout(this.controlTimer);
     this.$wrap.addClass('vplay-has-started');
   }
 
@@ -122,20 +154,87 @@
   vPlayer.prototype.hideControlBar = function() {
     var self = this;
 
-    this.control_time = setTimeout(function() {
+    this.controlTimer = setTimeout(function() {
       self.$wrap.removeClass('vplay-has-started');
-    }, 5000);
+    }, 3000);
+  }
+
+  /**
+   * 开关播放
+   * @return {[type]} [description]
+   */
+  vPlayer.prototype.togglePlay = function() {
+    if(this.isPlaying()) {
+      this.pause();
+    }else{
+      this.play();
+    }
+  }
+
+  /**
+   * 更新进度条
+   * @return {[type]} [description]
+   */
+  vPlayer.prototype.uploadProgress = function(time) {
+    var per = time / this.durationTime * 100;
+
+    per = (per <= 1) ? 1 : per;
+
+    this.$playProgress.css({
+      width: per + '%'
+    })
   }
 
   /**
    * 播放事件
    */
-  vPlayer.prototype.events = function() {
+  vPlayer.prototype._events = function() {
+    var self = this;
     var event = [
       'ready',
       'play',
-      'pause'
+      'pause',
+      'loadedmetadata',
+      'timeupdate'
     ]
+
+    $.each(event, function(index, key) {
+      self.$video.on(key, function() {
+        switch(key) {
+          case 'ready':
+            break;
+          // 播放  
+          case 'play':
+            $('.vplay-play-control')
+              .removeClass('vplay-button-play')
+              .addClass('vplay-button-paused');
+            break;
+          // 暂时  
+          case 'pause':
+            $('.vplay-play-control')
+              .removeClass('vplay-button-paused')
+              .addClass('vplay-button-play');
+            break;  
+          // 视频总时间  
+          case 'loadedmetadata':
+            self.durationTime = self.getDuration();
+            var time = self.transferTime(self.durationTime);
+
+            $('.vplay-duration-time').text(time);
+            break;
+          // 当前播放时间  
+          case 'timeupdate':
+            var currentTime = self.getCurrentTime();
+            var time = self.transferTime(currentTime);
+
+            $('.vplay-current-time').text(time);
+            self.uploadProgress(currentTime);
+            break;  
+          default:
+            break;
+        }
+      })
+    })
   }
 
   /**
@@ -149,7 +248,7 @@
    * 暂停事件
    */
   vPlayer.prototype.pause = function() {
-    this.video.pause();
+    this.video.pause();      
   }
 
   /**
@@ -157,6 +256,14 @@
    */
   vPlayer.prototype.setCurrentTime = function(time) {
     this.video.currentTime = time;
+  }
+
+  /**
+   * 获取视频当前时间
+   * @return {[number]} [时间]
+   */
+  vPlayer.prototype.getCurrentTime = function() {
+    return this.video.currentTime || 0;
   }
 
   /**
@@ -181,6 +288,22 @@
    */
   vPlayer.prototype.isPlaying = function() {
     return !this.video.paused && !this.video.ended;
+  }
+
+  /**
+   * 转换时间
+   */
+  vPlayer.prototype.transferTime = function(second) {
+    //秒数转换
+    var time = second.toFixed(1),
+      minutes = Math.floor((time / 60) % 60),
+      seconds = Math.floor(time % 60);
+
+    if(seconds < 10) {
+      seconds = '0' + seconds;
+    }
+
+    return minutes + ':' + seconds;
   }
 
   window.vPlayer = vPlayer;

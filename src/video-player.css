@@ -44,8 +44,10 @@ body {
   top: 0;
   left: 0;
   bottom: 0;
+  width: 1%;
   height: 100%;
   background: #ff4252;
+  z-index: 1;
 }
 
 .vplay-wrap .vplay-control-bar .vplay-play-progress:after {
@@ -61,6 +63,34 @@ body {
   -webkit-border-radius: 50%;
   -moz-border-radius: 50%;
   border-radius: 50%;
+}
+
+.vplay-wrap .vplay-control-bar .vplay-mouse-display {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: 2;
+  width: 1px;
+  height: 100%;
+  background: #666;
+  visibility: hidden;
+  opacity: 0;
+  -webkit-transition: visibility .1s, opacity .1s;
+  -moz-transition: visibility .1s, opacity .1s;
+  transition: visibility .1s, opacity .1s;
+}
+
+.vplay-wrap .vplay-control-bar .vplay-mouse-display span {
+  position: absolute;
+  top: -18px;
+  left: -15px;
+  height: 16px;
+  line-height: 16px;
+  padding: 0 4px;
+  background: #000;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
 }
 
 .vplay-wrap .vplay-control-bar .vplay-control-fn {
