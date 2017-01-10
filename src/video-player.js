@@ -2,7 +2,7 @@
  * @Description: HTML5 Video Player
  * @Author: wangjun
  * @Update: 2017-01-05 12:00
- * @version: 1.3
+ * @version: 1.0
  * @Github URL: https://github.com/nevergiveup-j/html5-video-player
  */
 ;(function (factory) {
@@ -20,10 +20,15 @@
     width: 720,
     // 播放器高度
     height: 480,
-    // 在视频播放之前所显示的图片的 URL
-    autoplay: true,
+    // 自动播放
+    autoplay: false,
+    // 循环播放
+    loop: false,
     poster: '',
-    controlBar: {},
+    controlBar: {
+      volume: true,
+      fullscreen: true
+    },
     // 视频流地址
     stream: [],
     // 浏览器不支持video标签时的提示，可使用html标签
@@ -49,9 +54,12 @@
     this.controlTimer = null;
     // 总时间长
     this.durationTime = 0;
+    // 当前时间长
+    this.currentTime = 0;
 
     this.render();
     this._showControlBar();
+    self._hideControlBar();
     this.bind();
     this.readyBind();
     this._events();
@@ -61,7 +69,9 @@
    * 渲染
    */
   vPlayer.prototype.render = function() {
-    var clarityTpl = '';
+    var clarityTpl = '',
+      volumeTpl = '',
+      fullscreenTpl = '';
 
     // 视频流
     if(this.opts.stream.length) {
@@ -82,6 +92,28 @@
       clarityTpl += '</div></div>';
     }
 
+    // 声音模板
+    if(this.opts.controlBar.volume) {
+      volumeTpl = [
+        '<div class="vplay-volume-button vplay-volume-menu-button">',
+          '<span class="vplay-volume-text"></span>',
+          '<div class="vplay-volume-menu">',
+            '<div class="vplay-volume-bar">',
+              '<div class="vplay-volume-level"></div>',
+            '</div>',
+          '</div>',
+        '</div>'
+      ].join('')
+    }
+
+    if(this.opts.controlBar.fullscreen) {
+      fullscreenTpl = [
+        '<div class="vplay-button vplay-fullscreen-control">',
+          '<span></span>',
+        '</div>'
+      ].join('')
+    }
+
     var controlTpl = [
       '<div class="vplay-control-bar">',
         '<div class="vplay-progress-control">',
@@ -97,20 +129,12 @@
           '</div>',
           '<div class="vplay-current-time">00:00</div>',
           '<div class="vplay-remaining-time">/<span class="vplay-duration-time">00:00</span></div>',
-          '<div class="vplay-volume-button vplay-volume-menu-button">',
-            '<span class="vplay-volume-text"></span>',
-            '<div class="vplay-volume-menu">',
-              '<div class="vplay-volume-bar">',
-                '<div class="vplay-volume-level" style="width: 45%"></div>',
-              '</div>',
-            '</div>',
-          '</div>',
-          '<div class="vplay-button vplay-fullscreen-control">',
-            '<span></span>',
-          '</div>',
+          volumeTpl,
+          fullscreenTpl,
           clarityTpl,
         '</div>',        
-      '</div>'
+      '</div>',
+      '<div class="vplay-loading"><div></div><div></div><div></div></div>'
     ].join('')
 
     var posterTpl = [
@@ -134,14 +158,23 @@
   vPlayer.prototype.bind = function() {
     var self = this;
 
-    // this.$wrap.hover(
-    //   function() {
-    //     self._showControlBar();
-    //   },
-    //   function() {
-    //     self._hideControlBar();
-    //   }
-    // );
+    this.$wrap
+      .on('click', function(e) {
+        if(!$(e.target).parents('.vplay-clarity-menu-button').length) {
+          $('.vplay-menu-button').removeClass('vplay-menu-button-hover');
+        }
+      })
+      .on('contextmenu', function() {
+        return false;
+      })
+      .hover(
+        function() {
+          self._showControlBar();
+        },
+        function() {
+          self._hideControlBar();
+        }
+      );
   }
 
   /**
@@ -154,6 +187,11 @@
         $buttonPlay = $('.vplay-play-control'),
         $mouseDisplay = $('.vplay-mouse-display');
 
+    if(this.opts.autoplay) {
+      this.play();
+    }
+
+
     // Play
     $buttonPlay.on('click', function() {
       self.togglePlay();
@@ -162,10 +200,16 @@
     // 进度条
     this.$progress
       .on('mousemove', function(e) {
-        offsetX = (e.offsetX === 0) ? offsetX : e.offsetX;
+        clearTimeout(moveTimer);
+
+        offsetX = (e.offsetX <= 1) ? offsetX : e.offsetX;
 
         var currentTime = self.transferProgressTime(offsetX),
           time = self.transferTime(currentTime);
+
+        if(offsetX) {
+          self.$wrap.addClass('vplay-mouse-hover');
+        }  
 
         $mouseDisplay
           .css({
@@ -173,17 +217,14 @@
           })
           .html('<span>'+ time +'</span>');
       })
-      .hover(
-        function() {
-          self.$wrap.addClass('vplay-mouse-hover');
-        },
-        function() {
+      .on('mouseout', function() {
+        moveTimer = setTimeout(function() {
           self.$wrap.removeClass('vplay-mouse-hover');
-        }
-      )
+        }, 100);
+      })
       .on('click', function(e) {
         var x = e.offsetX || offsetX,
-            currentTime = self.transferProgressTime(x);  
+            currentTime = self.transferProgressTime(x);   
 
         self.setCurrentTime(currentTime);
         self.uploadProgress(currentTime);  
@@ -246,7 +287,8 @@
     var self = this;
 
     this.controlTimer = setTimeout(function() {
-      self.$wrap.removeClass('vplay-has-started');
+      self.$wrap.removeClass('vplay-has-started vplay-mouse-hover');
+      $('.vplay-menu-button').removeClass('vplay-menu-button-hover');
     }, 3000);
   }
 
@@ -273,19 +315,33 @@
   vPlayer.prototype._events = function() {
     var self = this;
     var event = [
-      'ready',
+      'loadstart',
+      'suspend',
+      'abort',
+      'error',
+      'emptied',
+      'stalled',
+      'loadedmetadata',
+      'loadeddata',
+      'canplay',
+      'canplaythrough',
+      'playing',
+      'waiting',
+      'seeking',
+      'seeked',
+      'ended',
+      'durationchange',
+      'timeupdate',
+      'progress',
       'play',
       'pause',
-      'loadedmetadata',
-      'timeupdate',
+      'ratechange',
       'volumechange'
     ]
 
     $.each(event, function(index, key) {
       self.$video.on(key, function() {
         switch(key) {
-          case 'ready':
-            break;
           // 播放  
           case 'play':
             $('.vplay-play-control')
@@ -307,11 +363,11 @@
             break;
           // 当前播放时间  
           case 'timeupdate':
-            var currentTime = self.getCurrentTime();
-            var time = self.transferTime(currentTime);
+            self.currentTime = self.getCurrentTime();
+            var time = self.transferTime(self.currentTime);
 
             $('.vplay-current-time').text(time);
-            self.uploadProgress(currentTime);
+            self.uploadProgress(self.currentTime);
             break; 
           // 声音  
           case 'volumechange':
@@ -327,7 +383,14 @@
             $('.vplay-volume-level').css({
               width: per
             });
-            break;     
+            break;
+          // 视频结束  
+          case 'ended':
+            if(self.opts.loop) {
+              self.setCurrentTime(0.1);
+              self.play();
+            }
+            break;    
           default:
             break;
         }
@@ -389,6 +452,9 @@
     $source.attr('src', url);
 
     this.load();
+
+    this.setCurrentTime(this.currentTime);
+
     this.play();
   }
 
