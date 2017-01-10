@@ -24,6 +24,8 @@
     autoplay: true,
     poster: '',
     controlBar: {},
+    // 视频流地址
+    stream: [],
     // 浏览器不支持video标签时的提示，可使用html标签
     notsuportmsg:"您的浏览器不支持html5，无法使用该插件！"   
   }
@@ -49,7 +51,7 @@
     this.durationTime = 0;
 
     this.render();
-    this.showControlBar();
+    this._showControlBar();
     this.bind();
     this.readyBind();
     this._events();
@@ -59,6 +61,26 @@
    * 渲染
    */
   vPlayer.prototype.render = function() {
+    var clarityTpl = '';
+
+    // 视频流
+    if(this.opts.stream.length) {
+      var stream = this.opts.stream,
+        len = stream.length;
+
+      clarityTpl = '<div class="vplay-clarity vplay-menu-button vplay-clarity-menu-button">';
+      clarityTpl += '<div class="vplay-clarity-text">'+ stream[len - 1].name +'</div><div class="vplay-menu">';
+
+      for(var i = 0; i < len; i++) {
+        if(i >= len -1) {
+          clarityTpl += '<a href="javascript:" class="active" data-index="'+ i +'">'+ stream[i].name +'</a>';
+        }else{
+          clarityTpl += '<a href="javascript:" data-index="'+ i +'">'+ stream[i].name +'</a>';
+        }
+      }
+
+      clarityTpl += '</div></div>';
+    }
 
     var controlTpl = [
       '<div class="vplay-control-bar">',
@@ -66,7 +88,7 @@
           '<div class="vplay-progress-holder">',
             '<div class="vplay-load-progress"></div>',
             '<div class="vplay-play-progress"></div>',
-            '<div class="vplay-mouse-display"><span>3:06</span></div>',
+            '<div class="vplay-mouse-display"><span></span></div>',
           '</div>',
         '</div>',
         '<div class="vplay-control-fn">',
@@ -81,13 +103,14 @@
           '<div class="vplay-button vplay-fullscreen-control">',
             '<span></span>',
           '</div>',
+          clarityTpl,
         '</div>',        
       '</div>'
     ].join('')
 
     var posterTpl = [
       '<div class="vplay-poster"></div>'
-    ].join('')
+    ].join('');
 
 
     this.$video.wrap('<div class="vplay-wrap" id="J_vplayWrap" />');
@@ -106,14 +129,14 @@
   vPlayer.prototype.bind = function() {
     var self = this;
 
-    this.$wrap.hover(
-      function() {
-        self.showControlBar();
-      },
-      function() {
-        self.hideControlBar();
-      }
-    );
+    // this.$wrap.hover(
+    //   function() {
+    //     self._showControlBar();
+    //   },
+    //   function() {
+    //     self._hideControlBar();
+    //   }
+    // );
   }
 
   /**
@@ -121,29 +144,75 @@
    */
   vPlayer.prototype.readyBind = function() {
     var self = this;
+    var moveTimer = null,
+        offsetX = 0,
+        $buttonPlay = $('.vplay-play-control'),
+        $mouseDisplay = $('.vplay-mouse-display');
 
-    console.log('ready');
-
-    // Play按钮
-    $('.vplay-play-control').on('click', function() {
+    // Play
+    $buttonPlay.on('click', function() {
       self.togglePlay();
     });
 
-    this.$progress.on('click', function(e) {
-      var width = $(this).width(),
-        per = e.offsetX / width * 10,
-        perTime = self.durationTime * 0.1,
-        currentTime = perTime * per;
+    // 进度条
+    this.$progress
+      .on('mousemove', function(e) {
+        offsetX = (e.offsetX === 0) ? offsetX : e.offsetX;
 
-      self.setCurrentTime(currentTime);
-      self.uploadProgress(currentTime);  
-    });
+        var currentTime = self.transferProgressTime(offsetX),
+          time = self.transferTime(currentTime);
+
+        $mouseDisplay
+          .css({
+            left: offsetX
+          })
+          .html('<span>'+ time +'</span>');
+      })
+      .hover(
+        function() {
+          self.$wrap.addClass('vplay-mouse-hover');
+        },
+        function() {
+          self.$wrap.removeClass('vplay-mouse-hover');
+        }
+      )
+      .on('click', function(e) {
+        var x = e.offsetX || offsetX,
+            currentTime = self.transferProgressTime(x);  
+
+        self.setCurrentTime(currentTime);
+        self.uploadProgress(currentTime);  
+      });
+
+    // 全屏
+    $('.vplay-fullscreen-control').on('click', function() {
+      self.fullScreen();
+    })
+
+    // 清晰度
+    $('.vplay-menu-button').on('click', function(e) {
+      var $target = $(e.target);
+
+      $(this).toggleClass('vplay-menu-button-hover');
+
+      if($target.is('a')) {
+        var index = $target.attr('data-index');
+
+        if(!$target.hasClass('active')) {
+          $(this).find('.vplay-menu a').removeClass('active');
+          $target.addClass('active');
+          $(this).find('.vplay-clarity-text').text($target.text());
+
+          self.resetAddress(self.opts.stream[index].url);
+        }
+      }
+    })
   }
 
   /**
    * 显示控制框
    */
-  vPlayer.prototype.showControlBar = function() {
+  vPlayer.prototype._showControlBar = function() {
     clearTimeout(this.controlTimer);
     this.$wrap.addClass('vplay-has-started');
   }
@@ -151,24 +220,12 @@
   /**
    * 隐藏控制框
    */
-  vPlayer.prototype.hideControlBar = function() {
+  vPlayer.prototype._hideControlBar = function() {
     var self = this;
 
     this.controlTimer = setTimeout(function() {
       self.$wrap.removeClass('vplay-has-started');
     }, 3000);
-  }
-
-  /**
-   * 开关播放
-   * @return {[type]} [description]
-   */
-  vPlayer.prototype.togglePlay = function() {
-    if(this.isPlaying()) {
-      this.pause();
-    }else{
-      this.play();
-    }
   }
 
   /**
@@ -178,11 +235,14 @@
   vPlayer.prototype.uploadProgress = function(time) {
     var per = time / this.durationTime * 100;
 
+    time = this.transferTime(time);
     per = (per <= 1) ? 1 : per;
 
-    this.$playProgress.css({
-      width: per + '%'
-    })
+    this.$playProgress
+      .css({
+        width: per + '%'
+      })
+      .html('<span>'+ time +'</span>')
   }
 
   /**
@@ -252,6 +312,49 @@
   }
 
   /**
+   * 开关播放
+   * @return {[type]} [description]
+   */
+  vPlayer.prototype.togglePlay = function() {
+    if(this.isPlaying()) {
+      this.pause();
+    }else{
+      this.play();
+    }
+  }
+
+  /**
+   * 视频加载
+   */
+  vPlayer.prototype.load = function() {
+    this.video.load();      
+  }
+
+  /**
+   * 全屏
+   */
+  vPlayer.prototype.fullScreen = function() {
+    if(fullScreenApi.supportsFullScreen) {
+      fullScreenApi.requestFullScreen(this.video);
+    }
+  }
+
+  /**
+   * 重置视频地址
+   * @param  {string} url [视频地址]
+   */
+  vPlayer.prototype.resetAddress = function(url) {
+    var $source = this.$video.find('source');
+
+    this.pause();
+
+    $source.attr('src', url);
+
+    this.load();
+    this.play();
+  }
+
+  /**
    * 设置当前时间
    */
   vPlayer.prototype.setCurrentTime = function(time) {
@@ -268,7 +371,7 @@
 
   /**
    * 获取视频总播放时间
-   * @return {[number]} [时间]
+   * @return {number} [时间]
    */
   vPlayer.prototype.getDuration = function() {
     return this.video.duration || 0;
@@ -276,7 +379,7 @@
 
   /**
    * 获取缓冲进度
-   * @return {[number]} [时间]
+   * @return {number} [时间]
    */
   vPlayer.prototype.getBuffered = function() {
     return this.video.buffered.end(0);
@@ -284,14 +387,30 @@
 
   /**
    * 是否正在播放
-   * @return {[boolean]} [状态]
+   * @return {boolean} [状态]
    */
   vPlayer.prototype.isPlaying = function() {
     return !this.video.paused && !this.video.ended;
   }
 
   /**
-   * 转换时间
+   * 转换进度时间
+   * @param  {number}  x  [坐标]
+   * @return {string}     [时间]
+   */
+  vPlayer.prototype.transferProgressTime = function(x) {
+    var width = this.$progress.width(),
+      per = x / width * 10,
+      perTime = this.durationTime * 0.1,
+      currentTime = perTime * per;
+
+    return currentTime;
+  }
+
+  /**
+   * 转换时间格式
+   * @param  {number} second [时间秒]
+   * @return {string}        [返回时间格式：00:00]
    */
   vPlayer.prototype.transferTime = function(second) {
     //秒数转换
@@ -310,3 +429,59 @@
 
   return vPlayer;
 })); 
+
+
+// FullScreen Api
+(function() {
+    var
+        fullScreenApi = {
+            supportsFullScreen: false,
+            isFullScreen: function() { return false; },
+            requestFullScreen: function() {},
+            cancelFullScreen: function() {},
+            fullScreenEventName: '',
+            prefix: ''
+        },
+        browserPrefixes = 'webkit moz o ms khtml'.split(' ');
+ 
+    // check for native support
+    if (typeof document.cancelFullScreen != 'undefined') {
+        fullScreenApi.supportsFullScreen = true;
+    } else {
+        // check for fullscreen support by vendor prefix
+        for (var i = 0, il = browserPrefixes.length; i < il; i++ ) {
+            fullScreenApi.prefix = browserPrefixes[i];
+ 
+            if (typeof document[fullScreenApi.prefix + 'CancelFullScreen' ] != 'undefined' ) {
+                fullScreenApi.supportsFullScreen = true;
+ 
+                break;
+            }
+        }
+    }
+ 
+    // update methods to do something useful
+    if (fullScreenApi.supportsFullScreen) {
+        fullScreenApi.fullScreenEventName = fullScreenApi.prefix + 'fullscreenchange';
+ 
+        fullScreenApi.isFullScreen = function() {
+            switch (this.prefix) {
+                case '':
+                    return document.fullScreen;
+                case 'webkit':
+                    return document.webkitIsFullScreen;
+                default:
+                    return document[this.prefix + 'FullScreen'];
+            }
+        }
+        fullScreenApi.requestFullScreen = function(el) {
+            return (this.prefix === '') ? el.requestFullScreen() : el[this.prefix + 'RequestFullScreen']();
+        }
+        fullScreenApi.cancelFullScreen = function(el) {
+            return (this.prefix === '') ? document.cancelFullScreen() : document[this.prefix + 'CancelFullScreen']();
+        }
+    }
+ 
+    // export api
+    window.fullScreenApi = fullScreenApi;
+})();

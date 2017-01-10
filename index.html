@@ -11,7 +11,7 @@
 </head>
 <body>
 	<div class="wrap" style="width: 800px;margin: 0 auto">
-		<video width=725 height=450 id="J_vPlayer" style="width: 100%" class="v-player">
+		<video id="J_vPlayer" style="width: 100%" class="v-player">
 			<source src="./movie.mp4" type="video/mp4">
 		</video>
 	</div>
@@ -20,7 +20,22 @@
 <script src="./src/jquery-1.12.0.min.js"></script>
 <script src="./src/video-player.js"></script>
 <script>
-var Video = new vPlayer('#J_vPlayer');
+var Video = new vPlayer('#J_vPlayer', {
+  stream: [
+    {
+      'url': './movie_1.mp4',
+      'name': '超清'
+    },
+    {
+      'url': './movie.mp4',
+      'name': '高清'
+    },
+    {
+      'url': './movie_1.mp4',
+      'name': '普清'
+    }
+  ]
+});
 
 Video.play()
 </script>

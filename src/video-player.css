@@ -47,32 +47,51 @@ body {
   width: 1%;
   height: 100%;
   background: #ff4252;
-  z-index: 1;
 }
 
 .vplay-wrap .vplay-control-bar .vplay-play-progress:after {
   content: '';
   position: absolute;
-  top: -4px;
-  right: -4px;
-  width: 12px;
-  height: 12px;
+  top: -3px;
+  right: -3px;
+  z-index: 2;
+  width: 10px;
+  height: 10px;
   overflow: hidden;
   background: #fff;
   border: 1px solid #ff4252;
   -webkit-border-radius: 50%;
   -moz-border-radius: 50%;
   border-radius: 50%;
+  -webkit-transition: all .1s;
+  -moz-transition: all .1s;
+  transition: all .1s;
+}
+
+.vplay-wrap .vplay-control-bar .vplay-play-progress span {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  top: -20px;
+  right: -13px;
+  z-index: 2;
+  height: 16px;
+  line-height: 16px;
+  padding: 0 4px;
+  background: #ff4252;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
 }
 
 .vplay-wrap .vplay-control-bar .vplay-mouse-display {
   position: absolute;
   top: 0;
   left: 50%;
-  z-index: 2;
+  z-index: 1;
   width: 1px;
   height: 100%;
-  background: #666;
+  background: #999;
   visibility: hidden;
   opacity: 0;
   -webkit-transition: visibility .1s, opacity .1s;
@@ -136,7 +155,87 @@ body {
   background: url(./images/icon_fullscreen.png) no-repeat center;
 }
 
-.vplay-has-started .vplay-control-bar {
+.vplay-wrap .vplay-menu-button {
+  position: relative;
+}
+
+.vplay-wrap .vplay-menu {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  left: 0;
+  bottom: 35px;
+  background: rgba(0, 0, 0, .7);
+  color: #777;
+  -webkit-transition: all .1s;
+  -moz-transition: all .1s;
+  transition: all .1s;
+}
+
+.vplay-wrap .vplay-menu-button-hover .vplay-menu {
   visibility: visible;
   opacity: 1;
+}
+.vplay-wrap .vplay-menu:after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -4px;
+  width: 0;
+  height: 0;
+  margin-left: -2px;
+  border-width: 4px 4px 0;
+  border-color: rgba(0, 0, 0, .7) transparent transparent;
+  border-style: solid;
+  overflow: hidden;
+}
+
+.vplay-wrap .vplay-menu a {
+  display: block;
+  height: 16px;
+  line-height: 16px;
+  padding: 2px 0;
+  text-decoration: none;
+  color: #777;
+}
+.vplay-wrap .vplay-menu .active {
+  background: rgba(255, 66, 82, .5);
+  color: #fff;
+}
+.vplay-wrap .vplay-menu a:hover {
+  color: #fff;
+}
+
+
+.vplay-wrap .vplay-clarity-menu-button {
+  float: right;
+}
+.vplay-wrap .vplay-clarity-menu-button .vplay-clarity-text {
+  height: 18px;
+  line-height: 18px;
+  padding: 0 6px;
+  margin: 6px 5px 0 0;
+  background: rgba(0, 0, 0, .5)
+}
+
+.vplay-wrap .vplay-clarity-menu-button .vplay-menu {
+  left: 50%;
+  width: 70px;
+  margin-left: -40px;
+  text-align: center;
+}
+
+
+.vplay-has-started .vplay-control-bar,
+.vplay-mouse-hover .vplay-control-bar .vplay-mouse-display,
+.vplay-mouse-hover .vplay-control-bar .vplay-play-progress span {
+  visibility: visible;
+  opacity: 1;
+}
+
+.vplay-mouse-hover .vplay-control-bar .vplay-play-progress:after {
+  top: -4px;
+  right: -4px;
+  width: 12px;
+  height: 12px;
 }
