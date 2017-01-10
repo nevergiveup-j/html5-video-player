@@ -97,8 +97,13 @@
           '</div>',
           '<div class="vplay-current-time">00:00</div>',
           '<div class="vplay-remaining-time">/<span class="vplay-duration-time">00:00</span></div>',
-          '<div class="vplay-volume-menu-button">',
-            '<span></span>',
+          '<div class="vplay-volume-button vplay-volume-menu-button">',
+            '<span class="vplay-volume-text"></span>',
+            '<div class="vplay-volume-menu">',
+              '<div class="vplay-volume-bar">',
+                '<div class="vplay-volume-level" style="width: 45%"></div>',
+              '</div>',
+            '</div>',
           '</div>',
           '<div class="vplay-button vplay-fullscreen-control">',
             '<span></span>',
@@ -207,6 +212,23 @@
         }
       }
     })
+
+    // 声音
+    $('.vplay-volume-button .vplay-volume-text').on('click', function() {
+      if(self.getVolume()) {
+        self.setVolume('0');
+      }else{
+        self.setVolume('1');
+      }
+    })
+
+    $('.vplay-volume-bar').on('click', function(e) {
+      var width = $(this).width(),
+          x = e.offsetX,
+          per = x / width;
+
+      self.setVolume(per);
+    })
   }
 
   /**
@@ -255,7 +277,8 @@
       'play',
       'pause',
       'loadedmetadata',
-      'timeupdate'
+      'timeupdate',
+      'volumechange'
     ]
 
     $.each(event, function(index, key) {
@@ -289,7 +312,22 @@
 
             $('.vplay-current-time').text(time);
             self.uploadProgress(currentTime);
-            break;  
+            break; 
+          // 声音  
+          case 'volumechange':
+            var volume = self.getVolume(),
+                per = volume * 100 + '%';
+
+            if(volume) {
+              $('.vplay-volume-button').removeClass('vplay-volume-0');
+            }else{
+              $('.vplay-volume-button').addClass('vplay-volume-0');
+            }
+
+            $('.vplay-volume-level').css({
+              width: per
+            });
+            break;     
           default:
             break;
         }
@@ -359,6 +397,22 @@
    */
   vPlayer.prototype.setCurrentTime = function(time) {
     this.video.currentTime = time;
+  }
+
+  /**
+   * 设置声音
+   * @param {[type]} value [description]
+   */
+  vPlayer.prototype.setVolume = function(value) {
+    this.video.volume = value || 1;
+  }
+
+  /**
+   * 获取声音
+   * @return {[number]} [声音]
+   */
+  vPlayer.prototype.getVolume = function() {
+    return this.video.volume || 0;
   }
 
   /**

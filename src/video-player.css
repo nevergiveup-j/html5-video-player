@@ -134,10 +134,65 @@ body {
   float: left;
   color: #999;
 }
+
+.vplay-wrap .vplay-control-bar .vplay-volume-button {
+  float: left;
+  height: 100%;
+  margin-left: 5px;  
+}
+
+.vplay-wrap .vplay-control-bar .vplay-volume-button .vplay-volume-text {
+  float: left;
+  display: inline-block;
+  width: 30px;
+  height: 100%;
+  background: url(./images/icon_volume.png) no-repeat center;
+}
+
+.vplay-wrap .vplay-control-bar .vplay-volume-0 .vplay-volume-text {
+  background-image: url(./images/icon_volume_1.png);
+}
+
+.vplay-wrap .vplay-control-bar .vplay-volume-menu {
+  float: left;
+  margin-top: 13px;
+}
+.vplay-wrap .vplay-control-bar .vplay-volume-bar {
+  width: 100px;
+  height: 4px;
+  background: rgba(255,255,255, .4);
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+}
+.vplay-wrap .vplay-control-bar .vplay-volume-bar .vplay-volume-level {
+  position: relative;
+  width: 0;
+  height: 100%;
+  background: #ce191e;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+}
+.vplay-wrap .vplay-control-bar .vplay-volume-bar .vplay-volume-level:after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 10px;
+  height: 10px;
+  overflow: hidden;
+  background: #fff;
+  -webkit-border-radius: 50%;
+  -moz-border-radius: 50%;
+  border-radius: 50%;
+}
+
 .vplay-wrap .vplay-control-bar .vplay-fullscreen-control {
   float: right;
 }
 .vplay-wrap .vplay-control-bar .vplay-button span {
+  display: inline-block;
   width: 20px;
   height: 20px;
   overflow: hidden;
