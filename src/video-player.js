@@ -127,13 +127,14 @@
           '<div class="vplay-button vplay-play-control vplay-button-paused">',
             '<span></span>',
           '</div>',
-          '<div class="vplay-current-time">00:00</div>',
-          '<div class="vplay-remaining-time">/<span class="vplay-duration-time">00:00</span></div>',
+          '<div class="vplay-current-time">0:00</div>',
+          '<div class="vplay-remaining-time">/<span class="vplay-duration-time">0:00</span></div>',
           volumeTpl,
           fullscreenTpl,
           clarityTpl,
         '</div>',        
       '</div>',
+      '<div class="vplay-center-button-play"></div>',
       '<div class="vplay-loading"><div></div><div></div><div></div></div>'
     ].join('')
 
@@ -191,6 +192,9 @@
       this.play();
     }
 
+    this.$video.on('click', function() {
+      self.togglePlay();
+    });
 
     // Play
     $buttonPlay.on('click', function() {
@@ -223,8 +227,7 @@
         }, 100);
       })
       .on('click', function(e) {
-        var x = e.offsetX || offsetX,
-            currentTime = self.transferProgressTime(x);   
+        var currentTime = self.transferProgressTime(offsetX);   
 
         self.setCurrentTime(currentTime);
         self.uploadProgress(currentTime);  
@@ -249,6 +252,8 @@
           $target.addClass('active');
           $(this).find('.vplay-clarity-text').text($target.text());
 
+          self.showLoading();
+
           self.resetAddress(self.opts.stream[index].url);
         }
       }
@@ -269,6 +274,11 @@
           per = x / width;
 
       self.setVolume(per);
+    })
+
+    // center播放
+    $('.vplay-center-button-play').on('click', function() {
+      self.play();
     })
   }
 
@@ -347,12 +357,18 @@
             $('.vplay-play-control')
               .removeClass('vplay-button-play')
               .addClass('vplay-button-paused');
+
+            $('.vplay-center-button-play').hide();
+
+            self.hideLoading();
             break;
           // 暂时  
           case 'pause':
             $('.vplay-play-control')
               .removeClass('vplay-button-paused')
               .addClass('vplay-button-play');
+
+            $('.vplay-center-button-play').show();
             break;  
           // 视频总时间  
           case 'loadedmetadata':
@@ -387,8 +403,7 @@
           // 视频结束  
           case 'ended':
             if(self.opts.loop) {
-              self.setCurrentTime(0.1);
-              self.play();
+              self.loopPlay();
             }
             break;    
           default:
@@ -396,6 +411,20 @@
         }
       })
     })
+  }
+
+  /**
+   * 显示loading
+   */
+  vPlayer.prototype.hideLoading = function() {
+    $('.vplay-loading').hide();
+  }
+
+  /**
+   * 显示loading
+   */
+  vPlayer.prototype.showLoading = function() {
+    $('.vplay-loading').show();
   }
 
   /**
@@ -410,6 +439,14 @@
    */
   vPlayer.prototype.pause = function() {
     this.video.pause();      
+  }
+
+  /**
+   * 循环播放
+   */
+  vPlayer.prototype.loopPlay = function() {
+    this.setCurrentTime(0.1);
+    this.play();
   }
 
   /**
@@ -535,7 +572,7 @@
   vPlayer.prototype.transferTime = function(second) {
     //秒数转换
     var time = second.toFixed(1),
-      minutes = Math.floor((time / 60) % 60),
+      minutes = Math.floor(time / 60),
       seconds = Math.floor(time % 60);
 
     if(seconds < 10) {

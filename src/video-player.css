@@ -259,7 +259,6 @@ body {
 
 .vplay-wrap .vplay-menu a {
   display: block;
-  height: 16px;
   line-height: 16px;
   padding: 2px 0;
   text-decoration: none;
@@ -337,6 +336,32 @@ body {
   margin: -12px 0 0 -30px;
 }
 
+.vplay-wrap .vplay-center-button-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 50px;
+  height: 50px;
+  margin: -25px 0 0 -25px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, .1);
+  border: 3px solid #fff;
+  -webkit-border-radius: 50%;
+  -moz-border-radius: 50%;
+  border-radius: 50%;
+}
+
+.vplay-wrap .vplay-center-button-play:after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: -10px 0 0 -5px;
+  border-style: solid;
+  border-width: 10px;
+  border-color: transparent transparent transparent #fff;
+  border-width: 10px 0 10px 12px;
+}
 
 .vplay-has-started .vplay-control-bar,
 .vplay-mouse-hover .vplay-control-bar .vplay-mouse-display,
